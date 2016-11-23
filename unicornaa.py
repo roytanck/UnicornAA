@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import unicornhat as unicorn
 
 class UnicornAA:
 
@@ -8,14 +9,35 @@ class UnicornAA:
 	size = 16
 	grid = []
 
-	def __init__(self):
+	def __init__(self, oversample):
+		self.oversample = oversample
 		self.size = 8 * self.oversample
 		self.initGrid()
+		# fire up the unicorn hat
+		unicorn.set_layout(unicorn.HAT)
+		unicorn.rotation(90)
+		unicorn.brightness(1)
+		self.width,self.height=unicorn.get_shape()
 
 	# create a multidimensional array to hold our subpixels
 	def initGrid(self):
 		val = (0,0,0)
 		self.grid = [ [ val for i in range(self.size) ] for j in range(self.size) ]
+
+	def render(self):
+		for y in range( 0, 8 ):
+			for x in range( 0, 8 ):
+				# loop through the subpixel grid for this pixel
+				r, g, b = 0, 0, 0
+				for sx in range( x*self.oversample, (x+1)*self.oversample ):
+					for sy in range( y*self.oversample, (y+1)*self.oversample ):
+						r += self.grid[sx][sy][0]
+						g += self.grid[sx][sy][1]
+						b += self.grid[sx][sy][2]
+				# set the pixel's color to the average of the subpixels
+				unicorn.set_pixel( x, y, round( r/self.oversample**2 ), round( g/self.oversample**2 ), round( b/self.oversample**2 ) )
+		# display the result
+		unicorn.show();
 
 	# render the subpixel grid to stdout as "ascii art" (for testing)
 	def renderGridAscii(self):
